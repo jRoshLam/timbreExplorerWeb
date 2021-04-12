@@ -11,6 +11,11 @@ export class Articulation {
     this.arThresholdLP = MAX_ARTICULATION * (0.5 - this.allPassZone);
     this.arThresholdHP = MAX_ARTICULATION * (0.5 + this.allPassZone);
     
+    // portion of range at both the top and bottom where vibrato is active
+    this.vibratoZone = 0.2;
+    this.vibratoThreshLow = MAX_ARTICULATION * this.vibratoZone;
+    this.vibratoThreshHigh = MAX_ARTICULATION * (1 - this.vibratoZone)
+    
     // min and max articulation time in milliseconds
     this.minArTime = 5;
     this.maxArTime = 600;
@@ -25,7 +30,7 @@ export class Articulation {
     
     // graph parameters
     this.expFc = 1;
-    this.graphL = 21
+    this.graphL = 41
     this.graphTime = 1;
     this.timeVector = new Float32Array(this.graphL);
     this.artiGraph = new Float32Array(this.graphL);
@@ -39,6 +44,7 @@ export class Articulation {
   
   initArticulationTable() {
     for (var ar = 0; ar <= MAX_ARTICULATION; ar++) {
+      
       // if articulation is in low-pass zone (lower end of range)
       if (ar <= this.arThresholdLP) {
         // Articulation time is longer the farther it is from the middle of the range, calculated on Linear scale
@@ -107,7 +113,7 @@ export class Articulation {
       }
     }
     graphObj.setData(this.artiGraph);
-    if (this.filterType == 'highpass') {
+    if (this.filterType == 'highpass' && !this.allPass) {
       graphObj.setEndPoints(1, 1);
     } else {
       graphObj.setEndPoints(0, 0);

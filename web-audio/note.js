@@ -9,6 +9,7 @@ import * as enveloADSR from './enveloADSR.js'
 export class Note {
   constructor(context, spectrum, brightness, articulation, envelope, destination) {
     
+    this.key = 0;
     this.frequency = 440;
     this.pressed = false;
     this.destination = destination;
@@ -41,6 +42,11 @@ export class Note {
   setFrequency(frequency) {
     this.frequency = frequency;
     this.spSynth.setFrequency(frequency);
+    this.brFilter.setFrequency(frequency);
+  }
+  
+  setKey(keyCode) {
+    this.key = keyCode;
   }
   
   getOffTime() {
