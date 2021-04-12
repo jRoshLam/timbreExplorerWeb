@@ -10,7 +10,7 @@ export class BrightFilter {
     this.brightness = brightness;
     
     //frf variables
-    this.frfL = 21;
+    this.frfL = 81;
     this.freq = new Float32Array(this.frfL);
     this.frfM = new Float32Array(this.frfL);
     this.frfP = new Float32Array(this.frfL);
@@ -19,7 +19,7 @@ export class BrightFilter {
       this.freq[i] = i / (this.frfL - 1) * 20000;
     }
     
-    this.f0 = 440;
+    this.f0 = 0;
     this.filter.connect(this.destination);
     this.input.connect(this.destination);
     this.updateBrightness();

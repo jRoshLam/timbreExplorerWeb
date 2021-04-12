@@ -35,6 +35,7 @@ export class Spectrum {
       this.amps = [1, 0, 0, 0];
       this.fRatios = [inharmonicity, inharmonicity, inharmonicity, inharmonicity];
       this.shapes = ['sawtooth', 'sawtooth', 'sawtooth', 'sawtooth']
+      this.normGain = 0.25;
     } else if (newValue >= 100) {
       // TODO: kFmConfigAM divides total amplitude by 4, must compensate
       let evenOddRatio = (newValue - 100) * 0.01;
@@ -44,6 +45,7 @@ export class Spectrum {
       this.amps = [evenOddRatio, oddEvenRatio, 0, 0];
       this.fRatios  = [1, 1, 1, 1];
       this.shapes = ['sawtooth', 'square', 'sine', 'sine'];
+      this.normGain = 0.125;
     } else if (newValue >= 50) {
       // convert range of 0-50 to 0-1
       let evenOddRatio = (newValue - 50) * 0.02;
@@ -53,29 +55,34 @@ export class Spectrum {
       this.amps = [oddEvenRatio, evenOddRatio, 0, 0];
       this.fRatios = [1, 1, 1, 1];
       this.shapes = ['triangle', 'square', 'sine', 'sine'];
+      this.normGain = 0.125;
     } else if (newValue >=  40) {
       let evenOddRatio = (newValue - 40) * 0.1;
       let oddEvenRatio = (1 - evenOddRatio);
-      
       this.amps = [evenOddRatio, oddEvenRatio, 0, 0];
       this.fRatios = [1, 1, 1, 1];
       this.shapes = ['triangle', 'sine', 'sine', 'sine'];
+      this.normGain = 0.125;
     } else if (newValue >= 30) {
       this.amps = [1, 0.8, 0.6, 0.4];
       this.fRatios = [1, 1.5, 1.98, 2.44];
       this.shapes = ['sine', 'sine', 'sine', 'sine'];
+      this.normGain = 0.125;
     } else if (newValue >= 20) {
       this.amps = [1, 0.8, 0.8, 0];
       this.fRatios = [1, 4, 9.2, 1];
       this.shapes = ['sine', 'sine', 'sine', 'sine'];
+      this.normGain = 0.125;
     } else if (newValue >= 10) {
       this.amps = [1, 0.8, 0, 0];
       this.fRatios = [1, 3, 1, 1];
       this.shapes = ['sine', 'sine', 'sine', 'sine'];
+      this.normGain = 0.125;
     } else {
       this.amps = [1, 0, 0, 0];
       this.fRatios = [1, 1, 1, 1];
       this.shapes = ['sine', 'sine', 'sine', 'sine'];
+      this.normGain = 0.125;
     }
   }
 }

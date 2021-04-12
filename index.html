@@ -2,29 +2,220 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title>Hello World</title>
+		<title>Timbre Explorer Web</title>
     <link rel="stylesheet" href="styles.css">
 	</head>
 	<body>
-<!-- 		<h1>Hello World</h1>
-		<p>I can has web design?</p> -->
-<!--     <script type="text/javascript" src="./web-audio/timbreXWeb"></script> -->
-<!--     <script src="https://cdn.jsdelivr.net/npm/p5@1.1.9/lib/p5.js"></script> -->
     <canvas id="canvas"></canvas>
     <script type="module" src="./timbreXWeb.js"></script>
-    <div class="spectrumslidecontainer">
-      <input type="range" min="1" max="255" value="128" class="slider" id="specSlider">
+    <div class="spectrumslidecontainer" id="specContainer">Spectrum
+      <input type="range" min="0" max="255" value="128" class="slider" id="specSlider">
+<!--         Raw Spectrum -->
     </div>
-    <div class="brightnessslidecontainer">
-      <input type="range" min="1" max="255" value="128" class="slider" id="brigSlider">
+    <div class="brightnessslidecontainer" id="brigContainer">Brightness
+      <input type="range" min="0" max="255" value="128" class="slider" id="brigSlider">
+<!--         Filter Frequency Response  -->
     </div>
-    <div class="articulationslidecontainer">
-      <input type="range" min="1" max="255" value="128" class="slider" id="artiSlider">
+    <div class="articulationslidecontainer" id="artiContainer">Articulation
+      <input type="range" min="0" max="255" value="128" class="slider" id="artiSlider">
+<!--         Articulation Spectrogram -->
     </div>
-    <div class="envelopeslidecontainer">
-      <input type="range" min="1" max="255" value="128" class="slider" id="enveSlider">
+    <div class="envelopeslidecontainer" id="enveContainer">Envelope
+      <input type="range" min="0" max="255" value="128" class="slider" id="enveSlider">
+<!--         Envelope ADSR -->
+    </div>
+    <div class="infoZone" id="specInfoZone"></div>
+    <div class="infoZone" id="brigInfoZone"></div>
+    <div class="infoZone" id="artiInfoZone"></div>
+    <div class="infoZone" id="enveInfoZone"></div>
+    
+    <!--Graph Labels      -->
+<!--     <p id="specGraphTitle">Raw Spectrum</p><p id="specGraphXLbl"></p><p id="specGraphYLbl"></p>
+    <p id="brigGraphTitle"></p><p id="brigGraphXLbl"></p><p id="brigGraphYLbl"></p>
+    <p id="artiGraphTitle"></p><p id="artiGraphXLbl"></p><p id="artiGraphYLbl"></p>
+    <p id="enveGraphTitle"></p><p id="enveGraphXLbl"></p><p id="enveGraphYLbl"></p> -->
+    
+    <div class="instructions">
+      <h3>Instructions</h3>
+      <ul>
+        <li>Play notes using the bottom 2 rows of the keyboard (see bottom right for diagram).</li>
+        <li>Use the sliders at the top of the screen to change the timbre dimensions.</li>
+        <li>Change octaves using left and right arrow keys.</li>
+        <li>Hover over graphs/sliders for information about each dimension, its graphic visualization, and its effect on the timbre.</li>
+        <li>Press any key to start audio.</li>
+      </ul>
     </div>
     
+    <div class="presetMenu">
+      <label for="presets">Presets</label>
+      <br>
+      <select name="presets" id="presets">
+        <option value="">Reset</option>
+        <option value="piano">Piano</option>
+        <option value="bass">Bass</option>
+        <option value="violin">Violin</option>
+        <option value="flute">Flute</option>
+        <option value="clarinet">Clarinet</option>
+        <option value="timpani">Timpani</option>
+        <option value="marimba">Marimba</option>
+        <option value="xylophone">Xylophone</option>
+        <option value="glockenspiel">Glockenspiel</option>
+      </select>
+      <br><br>
+      <button id="presetSubmit" value="Submit">Submit</button>
+    </div>
+    
+    <div class="volumeSliderContainer">Volume
+      <input type="range" min="0" max = "255" value="128" class="slider" id="voluSlider">
+      
+    </div>
+    
+    <div class="infoBox" id="spectrumInfo">
+      <h3><b>Perceptual Progression (L2R):</b> Hollow - Full</h3>
+      <h3><b>Acoustic Correlate:</b> Spectral Density (Even-Odd Harmonic Balance)</h3>
+      <h3><b>Graph:</b> Fourier Transform</h3>
+      <p>
+        The spectrum dimension provides the foundational sound of the timbre explorer which is further shaped by the other three dimensions.
+        Perceptually, the sound is more <b>hollow</b> for lower spectrum values, but becomes more and more <b>full</b> as the spectrum value increases from left to right.
+        From a technical standpoint, the spectrum dimension controls the base wave-shape of the sound.
+        For the Timbre Explorer, the wave shape starts off as a <b>sine</b> shaped wave on the lower (left) end, then to a <b>square</b> shape, and finally a <b>sawtooth</b> shape at the higher (right) end.
+        At the extreme ends of the spectrum range are special case waveforms which don't follow this smooth waveshape progression.
+        The reason for this specific progression of waveshapes is best illustrated by the wave's <b>Fourier Transform</b>, which shows the wave in the frequency domain. Frequency domain graphs are commonly referred to as the spectrum, 
+        but for this project, the distinction should be made between the raw spectrum dictated by this dimension and the final spectrum shown in the black graph. 
+      </p>
+      <p>  
+        Frequency domain graphs show the frequency content of the waveshape, typically in the form of a series of peaks.
+        Each "peak" on the graph represents a frequency that's present in the sound, with low frequencies to the left and high frequencies to the right.
+        Notice how the peaks are evenly spaced for most of these spectrums. This means the frequency of each peak is an integer-multiple of a <b>fundamental frequency</b>, which is the first (left-most) peak in the spectrum.
+        These kinds of integer multiple peaks are referred to as <b>harmonics</b> of the fundamental frequency. A sine wave-shape is characterized by having none of these harmonics, with its spectrum only being a single peak.
+        For this reason, sine waves are commonly referred to as "pure tones". As we morph from a sine to a square shape, you can see the harmonics gradually enter the spectrum.
+        At a certain point, the shape becomes a full square wave but immediately begins to change into a sawtooth shape. When this starts to happen, you'll see that new harmonics will start to sprout between the
+        harmonics of the square wave. These new harmonics are the even-numbered harmonics of the fundamental frequency: twice the fundamental, four times, six times, etc. The square wave harmonics that grew before are the
+        odd-numbered harmonics: thrice the fundamental, five times, seven times, etc. Square waves are often described as hollow compared to sawtooth waves, which are described as having a fuller sound.
+        It's fitting that this is our perception since square waves only have odd harmonics, leaving hollow spaces where the even harmonics should be. In comparison, the sawtooth waveshape features the full range of both odd and even harmonics.
+      
+      </p>
+      <p>
+        In instruments, this base spectrum is determined by the physics of how the instrument vibrates the air.
+        Most wind and string instruments closely match the characteristic of sawtooths, boasting both odd and even harmonics.
+        An exception is the clarinet which is closer to the square wave, with greatly diminished even harmonics
+        As previously mentioned, there are special <b>inharmonic</b> waveforms at the top and bottom of the spectrum range.
+        At the top of the range, the sawtooth wave is slightly detuned from the fundamental. This kind of inharmonic behavior is linked to percussive string instruments like guitars or pianos.
+        At the bottom of the range are 4 special harmonic distributions meant to mimic tonal percussive instruments: the vibraphone, marimba, glockenspiel, and timpani. Can you recognize which is which?
+        You may need to set the frequency range to match that of the actual instrument.
+<!--         It should be notes that for tonal sounds such as those produced by the Timbre Explorer, this content is made up entirely by peaks. Other kinds of sounds have very different spectra,
+        for example noisy signals are characterized by more evenly distributed  -->
+      </p>
+      <p>
+        While this was the system I designed to encompass a wide range of sounds along a smooth 1-dimensional parameter, the reality is that the raw spectrum can be anything.
+        Noise signals, for example, are not characterized by peaks at all, but instead by a evenly distributed wall of frequency content.
+        The fourier transform is a widely used tool to analyze signals.
+        If you'd like to learn more I'd encourage you to find some kind of tool or program capable of this kind of analysis (for example Audacity or Sonic Visualiser) and seeing what different kinds of sounds look like in the frequency domain.
+      </p>
+    </div>
+    <div class="infoBox" id="brightnessInfo">
+      <h3><b>Perceptual Progression (L2R):</b> Dull - Bright</h3>
+      <h3><b>Acoustic Correlate:</b> Spectral Centroid</h3>
+      <h3><b>Graph:</b> Frequency Response Function</h3>
+      <p>
+        The brightness dimension is the first of out shaping dimensions, acting on the waveshape produced by the spectrum dimension.
+        Perceptually, sounds with a low brightness are....dull. As you increase the brightness from left to right, you'll hear the sound become more and more bright, up to a point where it becomes too bright and sounds tinny.
+        From a technical standpoint, the brightness module is a frequency filter. In the middle of the brightness range is a neutral setting: the filter is off, and no effect is actually applied
+        Below this neutral range, the filter is a low-pass filter, which blocks high-frequencies and allows low-frequencies to "pass". The result is a timbre that sounds more muddled. 
+        Above the neutral range, the filter is a high-pass filter, which blocks low-frequencies and allow high-frequencies to pass.
+        Frequency filters act by decreasing or increasing the amplitude of certain frequencies, but unlikely simply making the whole sound louder or quieter, not all frequencies are affected in the same way.
+      </p>
+      <p>
+        The behavior of the brightness filter is characterized by the frequency response function graph, which shows how the filter responds to different frequencies.
+        Like the Fourier transform of the spectrum, low frequencies are on the left and high frequencies are on the right. 
+        For the low pass case, in the lower end of the brightness range, the frequency response has a greater amplitude on the left (for low-frequencies) and lesser amplitude on the right (for high-frequencies).
+        The opposite is true for the high pass case. In the neutral setting, we see that the response is that same across all frequencies, as we would expect.
+        As the brightness value is moved farther away from neutral, the <b>cutoff frequency</b> of the filter scales correspondingly.
+        This cutoff frequency represents a target frequency that the filter is designed to start attenuating for all values greater or lower than it (depending on the filter type).
+        The brightness filter's effect on the spectrum can be visualized by overlaying the brightness graph on top of the raw spectrum, with the resultant spectrum seen in the black final spectrum graph.
+      </p>
+      <p>
+        Physically, brightness can be affected by many things. Things like the material of the instrument or its construction can have an effect.
+        Most instruments are designed to have specific resonances which amplify some frequencies, making others comparaitvely quieter.
+        Such resonances are constrained by size, which is why most instruments will not have particuarly strong frequency components that are too high or too low.
+        There also may be external factors that affect brightness. Brass mutes, for example, are designed to be high pass filters.
+        When sounds pass through solid objects, like walls or doors, they become low-passed.
+        And finally, sounds played through speakers are affected by the construction of the speaker. Cheap speakers often lack good low end response and thus are effectively high pass filters.
+        In reality filters are all around us and have uses that extend far beyond music.
+      </p>
+      <p>
+        To truly capture the sounds of real instruments, filters much more complicated than a simple low pass or a high pass are needed. AS previously mentioned, the construction of instruments themselves is a filter.
+        Such filters amplify specific frequencies, rather than broadly blocking a wide range.
+        It would be difficult to account for all these kinds of nuances in a smooth 1-dimensional progression, not to mention computationally expensive.
+      </p>
+<!--       filter resonances-->
+    </div>
+    <div class="infoBox" id="articulationInfo">
+      <h3><b>Perceptual Progression (L2R):</b> BWAA - NYUU</h3>
+      <h3><b>Acoustic Correlate:</b> Spectral Flux</h3>
+      <h3><b>Graph:</b> Spectrogram</h3>
+      <p>
+        The spectrogram begins to introduce time variance to the timbre.
+        Perceptually, the best way to describe the effect is through onomatopoeias. As in the brightness dimension, we have a neutral setting in the middle of the articulation range.
+        At low articualtion values, the sound is an increasingly pronounced "BWAA" sound. At high articulation values, the sound becomes more of a "NYUU" sound. The way these sounds are made are once again thorugh the use of a filter.
+        However, unlike the brightness filter, the articulation's filter has a cut off frequency that changes over time.
+      </p>
+      <p>
+        The articulation graph is perhaps the most complicated graph to explain. This is because spectrograms are actually three-dimensional graphs, shown on a two-dimensional space.
+        The third dimension is intensity, typically denoted by the intensity of the graph color. In the case of the articulation graph, there are only 2 color settings: off (white) and on (green).
+        Spectrograms show how the frequency of sounds change over time. One way to think of it is that each vertical slice of the spectrogram is its own spectrum at that given timestamp.
+        So for low articulation values, the sound starts with its lowest frequencies active, and as time progresses, the higher frequencies of the sound are brought in.
+        This can also be visualized in the final spectrum, where harmonics fill in from left to right (low to high). This is most easily seen for extreme articulation values.
+        The opposite happens for high articulation values: the sound starts with its highest frequencies and lower frequencies come in later, with the harmonics filling in from right to left on the final spectrum.
+      </p>
+      <p>
+        However, this change in frequency is not a straight line. This is because the human perception of frequency is similarly not linear. Humans are better at distinguishes small differences in frequency in low frequency ranges.
+        For higher frequencies, there needs to be a much greater difference in frequency for humans to notice it. Thus the articulation curve is accordingly exponential.
+      </p>
+      <p>
+        Numerous studies have shown that people can easily tell the difference between a real instrument and a synthesized instrument if the fake sound has all of it's harmonics change in the same way.
+        In other words, to try and sound realistic, this kind of articulation where harmonics come in at different times is necessary.
+        One example is in brass instruments which features an articulation similar to the "BWAA" sound of low articulation values.
+        Once again however, the articulation of the timbre explorer is a compromised design that tries to accomodate a consistent progression over a system capable of mimicing all possibilities.
+        With all the variables involved in articulation (time, amplitude, frequency), there are much more complex articulation patterns out there.
+        For example, sustain variations such as vibrato are not supported in this system. 
+      </p>
+    </div>
+    <div class="infoBox" id="envelopeInfo">
+      <h3><b>Perceptual Progression (L2R):</b> Percussive - Soft</h3>
+      <h3><b>Acoustic Correlate:</b> Log Attack Time</h3>
+      <h3><b>Graph:</b> ADSR</h3>
+      <p>
+        The final dimension is the envelope, which controls how the overall amplitude of the sound changes over time.
+        Perceptually, this dimension is primarily about the onset characteristic of the sound, the way the sound changes at the start.
+        Sounds with a low envelope value have more sudden onsets, as would be heard in percussive sounds like drums, xylophones etc.
+        Sounds with a high envelope value have more gradual onsets, as would be heard in bowed string instruments or wind instruments.
+        From a technical standpoint, the envelope module is modeled by the <b>ADSR</b> paradigm, which stands for Attack, Decay, Sustain, and Release.
+        This divides the sound into 4 consecutive periods of time. To help visualize this, see the envelope graph, which graphs the sound's amplitude over time.
+      </p>
+      <p>
+        The attack is the first section of the envelope, and represents the time it takes for the sound to reach it's maximum amplitude from the moment it's first triggered.
+        After the attack, the decay refers to the time it takes for the sound to drop to its sustain level, the 3rd section. 
+        In the sustain, as the name implies, the sound sustains a constant amplitude for as long as the key is depressed.
+        Finally, once the key is released, the sound goes into the release phase, with the release time referring to the amount of time it takes for the sound to drop from sustain to 0.
+        Generally speaking, the attack time gets shorter as the envelope value decreases, giving us our more percussive sound. As the envelope increases, the attack time increases
+        The decay time has the opposite behavior, increasing with lower envelope values and decreasing with higher envelope values.
+        Upon reaching the furthest reaches of the envelope range, the attack and decay reach maximum or minimum values, and the release time begins to increase the further from the center you are.
+      </p>
+      <p>
+        Both the envelope and the articulation affect how the sound changes over time.
+        The distinction is that the envelope is much more straightforward, directly changing the overall amplitude of the whole sound, for all of its frequencies.
+        Articulation has a different effect for different frequency components.
+      </p>
+      <p>
+        The ADSR is a very common tool used to model instrument amplitude envelopes. But while effective, it of course has its limitations.
+        And especially within the timbre explorer system, where all 4 parameters are controlled by a single value.
+      </p>
+    </div>
+    
+    <div class="pianoRoll">
+      <img src="https://cdn.glitch.com/ebd9ac69-5bdd-4ba4-8865-3d2ec9540edf%2FPianoRoll%20Keyboard.png?v=1607389810472" alt="PianoRoll" id="controls" width="300">
+    </div>
 	</body>
   
 </html>

@@ -1,45 +1,68 @@
-/* #canvas {
-  position: fixed;
-  top: 34%
-} */
+.body {
+  margin: 0;
+  padding: 0;
+}
+#canvas {
+  pointer-events: none;
+}
 
-.slidecontainer {
+/* .slidecontainer {
   width: 20%;
-/*   height: 33%;  */
+  height: 33%; 
   position: fixed;
   left: 5%;
   top: 10px;
+} */
+
+.sliderBank {
+  position: absolute;
+  width: 50%;
+  height: 10%;
+  left: 0px;
+  top: 40px;
 }
 
 .spectrumslidecontainer {
   width: 23%;
-/*   height: 33%; */
+  height: 33%;
   position: fixed;
   left: 2.5%;
-  top: 5%;
-  
+  top: 2%;
+  text-align: center;
+  font-family: "Verdana";
+  font-size: 150%;
 }
 .brightnessslidecontainer {
   width: 23%;
-/*   height: 33%; */
+  height: 33%;
   position: fixed;
   left: 26.5%;
-  top: 5%;
+  top: 2%;
+  text-align: center;
+  font-family: "Verdana";
+  font-size: 150%;
 }
 .articulationslidecontainer {
   width: 23%;
-/*   height: 33%; */
+  height: 33%;
   position: fixed;
   left: 50.5%;
-  top: 5%;
+  top: 2%;
+  text-align: center;
+  font-family: "Verdana";
+  font-size: 150%;
 }
 .envelopeslidecontainer {
   width: 23%;
-/*   height: 33%; */
+  height: 33%;
   position: fixed;
   left: 74.5%;
-  top: 5%;
-} 
+  top: 2%;
+  text-align: center;
+  font-family: "Verdana";
+  font-size: 150%;
+}
+
 
 /* The slider itself */
 .slider {
@@ -94,3 +117,55 @@
   background: #000000; /* Green background */
   cursor: pointer; /* Cursor on hover */
 }
+
+.infoZone {
+  position: absolute;
+  height: 
+}
+
+.instructions {
+  position: absolute;
+  top: 52%;
+  left: 2.5%;
+  width: 20%;
+  height: 25%;
+  overflow: auto;
+  font-family: "Verdana";
+}
+
+.presetMenu {
+  position: absolute;
+  top: 80%;
+  left: 2.5%;
+  font-family: "Verdana";
+}
+.volumeSliderContainer {
+  position: fixed;
+  top: 90%;
+  left: 2.5%;
+  width: 20%;
+/*   text-align: center; */
+  font-family: "Verdana";
+}
+
+.infoBox {
+  position: absolute;
+  top: 52%;
+  left: 25%;
+  width: 32%;
+  height: 40%;
+  overflow: auto;
+  font-family: "Verdana";
+  display: none;
+}
+
+/* .pianoRoll {
+  position: absolute;
+  bottom: 1%;
+  left: 57.5%;
+  right: 2.5%;
+  max-width: 100%;
+  width: 20%;
+  height: auto;
+  width: 20%;
+} */

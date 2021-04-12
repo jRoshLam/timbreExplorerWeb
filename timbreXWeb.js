@@ -9,6 +9,9 @@ import * as enveloADSR from './web-audio/enveloADSR.js'
 
 import * as note from './web-audio/note.js'
 import * as keyboard from './web-audio/keyboard.js'
+import * as volume from './web-audio/volume.js'
+
+import * as presetDict from './presets.js'
 
 
 //dev imports
@@ -25,15 +28,18 @@ import * as blockDiagram from './canvas/blockDiagram.js'
   
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  // canvas.style.left = "0px";
-  // canvas.style.top = "0.34*window.innerWidth";
-  // canvas.style.position = "absolute";
+  // canvas.style.width = document.documentElement.clientWidth;
+  // canvas.style.height = document.documentElement.clientHeight;
+  canvas.style.left = "0px";
+  canvas.style.top = "0px";
+  canvas.style.position = "absolute";
   var canvasContext = canvas.getContext('2d');
   // canvasContext.fillStyle = 'rgb(200, 200, 200)';
   // canvasContext.fillRect(this.x, this.y, this.w, this.h);
   
   var gui = new guiDimensions.GuiDimensions(canvas.width, canvas.height);
-  var blkD = new blockDiagram.BlockDiagram(canvasContext, gui);
+  var blkD = new blockDiagram.BlockDiagram(canvasContext, gui, document, canvas.width, canvas.height);
+
   
 //   var x = 0.02 * canvas.width;
 //   var y = 0.1 * canvas.height;
@@ -65,6 +71,7 @@ import * as blockDiagram from './canvas/blockDiagram.js'
   var brigSlider = document.getElementById("brigSlider");
   var artiSlider = document.getElementById("artiSlider");
   var enveSlider = document.getElementById("enveSlider");
+  var voluSlider = document.getElementById("voluSlider");
   
   var gainNode = ctx.createGain();
   // console.log(gainNode);
@@ -85,27 +92,60 @@ import * as blockDiagram from './canvas/blockDiagram.js'
   // specObj.updateSpectrum(250);
   // var synthObj = new spectrSynth.SpectrSynth(ctx, specObj, brFilterObj.input);
   // synthObj.updateSpectrum();
+
+  var presets = document.getElementById("presets");
+  var presetButton = document.getElementById("presetSubmit");
   
-  var noteObj = new note.Note(ctx, specObj, brigObj, artiObj, enveObj, gainNode);
-  var kbObj = new keyboard.Keyboard(ctx, specObj, brigObj, artiObj, enveObj, gainNode);
-  
-  
-  // spectrum.audioNodeParamTest(osc);
-  
+  // fft setup
   var analyser = ctx.createAnalyser();
   gainNode.connect(analyser);
   analyser.connect(ctx.destination);
   analyser.fftSize = 1024;
   var fftL = analyser.frequencyBinCount;
   var fftData = new Uint8Array(fftL);
-  var fftDB = new Float32Array(fftL);
+  
+  var fftMaxFreq = 20000;
+  var fftMaxL = Math.floor(fftL * 2 * fftMaxFreq / ctx.sampleRate);
+  var fftDB = new Float32Array(fftMaxL);
+  // var fftDB = new Float32Array(fftL);
+  
+  // dev stuff ==============================================================
+  
+  // objects
+  var lfoOsc = ctx.createOscillator();
+  var lfoGain = ctx.createGain();
+  var vibFilter = ctx.createBiquadFilter();
+  
+  // params
+  lfoOsc.frequency.value = 6;
+  lfoGain.gain.value = 2000;
+  vibFilter.frequency.value = 7000;
+  vibFilter.type = 'lowpass';
+  
+  lfoOsc.connect(lfoGain);
+  lfoGain.connect(vibFilter.frequency);
+  // analyser.connect(vibFilter);
+  // vibFilter.connect(ctx.destination);
+  vibFilter.connect(analyser);
+  // testOsc.type = 'sawtooth';
+  // testOsc.connect(analyser);
+  // testOsc.connect(analyser);
+  
+  var volObj = new volume.Volume(ctx, analyser);
+  var noteObj = new note.Note(ctx, specObj, brigObj, artiObj, enveObj, volObj.gain);
+  var kbObj = new keyboard.Keyboard(ctx, specObj, brigObj, artiObj, enveObj, volObj.gain);
+  
+  //special normalization for the single not object to normalize its spectrum
+  noteObj.spSynth.normGain.gain.value = 0.125;
   
   var setup = function(e){
     if (init) return;
     ctx.resume();
+    console.log("context sample rate:", ctx.sampleRate);
     console.log('Playback resumed successfully')
     noteObj.startAudio();
     kbObj.startAudio();
+    lfoOsc.start();
     init = true;
     // console.log(blkD.artiGraph.data);
     // testOsc.start();
@@ -113,10 +153,6 @@ import * as blockDiagram from './canvas/blockDiagram.js'
   }
   
   var onKeyDown = function(e){
-    // switch (e.keyCode) {
-    //   case 74: // j
-    //       break;
-    // }
     kbObj.keyPress(e.keyCode, true);
     // noteObj.playNote(true);
     console.log("keydown");
@@ -128,38 +164,39 @@ import * as blockDiagram from './canvas/blockDiagram.js'
     console.log("keyup");
   }
   
-  specSlider.oninput = function() {
-    specObj.updateSpectrum(this.value);
+  specSlider.oninput = updateSpectrum; // updates with this.value
+  brigSlider.oninput = updateBrightness;
+  artiSlider.oninput = updateArticulation;
+  enveSlider.oninput = updateEnvelope;
+  voluSlider.oninput = updateVolume;
+
+  function updateSpectrum() {
+    specObj.updateSpectrum(specSlider.value);
     noteObj.updateSpectrum();
     kbObj.updateSpectrum();
   }
-  brigSlider.oninput = function() {
-    brigObj.updateBrightness(this.value);
+  function updateBrightness() {
+    brigObj.updateBrightness(brigSlider.value);
     noteObj.updateBrightness();
     kbObj.updateBrightness();
   }
-  artiSlider.oninput = function() {
-    artiObj.updateArticulation(this.value);
+  function updateArticulation() {
+    artiObj.updateArticulation(artiSlider.value);
     noteObj.updateArticulation();
     kbObj.updateArticulation();
   }
-  
-  enveSlider.oninput = function() {
-    enveObj.updateEnvelope(this.value);
+  function updateEnvelope() {
+    enveObj.updateEnvelope(enveSlider.value);
     noteObj.updateEnvelope();
     kbObj.updateEnvelope();
   }
-
+  function updateVolume() {
+    volObj.updateVolume(voluSlider.value);
+  }
   
   window.addEventListener('keydown', setup);
-    
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
-  
-  // var testOsc = ctx.createOscillator();
-  // testOsc.type = 'sawtooth';
-  // testOsc.connect(analyser);
-  // testOsc.connect(analyser);
 
   // TODO: Turn off all audio when tab is switched
   // document.addEventListener("visibilitychange", function() {
@@ -169,8 +206,32 @@ import * as blockDiagram from './canvas/blockDiagram.js'
   //       console.log("Browser tab is visible")
   //   }
   // });
+  presetButton.onclick = changePreset;
   
+  //reset notes if tab de-activates
+  document.addEventListener("visibilitychange", function() {
+    kbObj.allNotesOff();
+    console.log("tab deactivated");
+  });
   
+  function changePreset() {
+    
+    var presetArray = presetDict.presetDict[presets.value];
+    //update sliders
+    specSlider.value = presetArray[0];
+    brigSlider.value = presetArray[1];
+    artiSlider.value = presetArray[2];
+    enveSlider.value = presetArray[3];
+    // specSlider.value = 170;
+    // brigSlider.value = 67;
+    // artiSlider.value = 124;
+    // enveSlider.value = 6;
+    //update timbre
+    updateSpectrum();
+    updateBrightness();
+    updateArticulation();
+    updateEnvelope();
+  }
   
   function draw() {
     
@@ -179,15 +240,6 @@ import * as blockDiagram from './canvas/blockDiagram.js'
     analyser.getByteFrequencyData(fftData);
     for (var i = 0; i < fftL; i++) {
       fftDB[i] = fftData[i] / 256.0;
-      if (fftDB[i] > 0.01) {
-        fftDB[i] = 20 * Math.log10(fftDB[i]);
-      } else {
-        fftDB[i] = -40;
-      }
-      
-      // convert range of [-40, 0] to [0,1]
-      fftDB[i] = (fftDB[i] + 40) * 0.025;
-
     }
     noteObj.spSynth.calculateFFT(blkD.specGraph);
     noteObj.brFilter.calculateFRF(blkD.brigGraph);
@@ -197,14 +249,24 @@ import * as blockDiagram from './canvas/blockDiagram.js'
     // graphObj.setData(fftDB);
     blkD.draw();
     
+    // canvasContext.font="30px Comic Sans MS";
+    // canvasContext.fillStyle = "red";
+    // // canvasContext.font = this.ttlFontSize+"px Verdana";
+    // // canvasContext.font = "30px Verdana";
+    // canvasContext.textAlign = "center";
+    // // canvasContext.fillText("Raw Spectrum", this.gui.graphTtlX, this.gui.graphTtlY);
+    // canvasContext.fillText("Raw Spectrum", 0, 0);
+    
     window.requestAnimationFrame(draw);
   }
   
   var resize = function() {
     canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+    canvas.height = window.innerHeight;
+    // canvas.width = document.body.clientWidth;
+    // canvas.height = document.body.clientHeight;
     console.log("resizing");
-    blkD.resize(window.innerWidth, window.innerHeight);
+    blkD.resize(canvas.width, canvas.height);
     // gui.resize(window.innerWidth, window.innerHeight);
     // canvas.width = window.innerWidth;
     // canvas.height = window.innerHeight;
